@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Happy Birthday</title>
+
+<style>
+
+body {
+  margin: 0;
+  background: linear-gradient(#ffb8e6, #ff8ad4);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  padding-top: 40px;
+}
+
+/* HEADER */
+h1 {
+  font-size: 60px;
+  color: white;
+  text-shadow: 0 0 20px #ff45d2;
+  margin-bottom: 80px;
+}
+
+/* CAKE */
+.cake {
+  width: 330px;
+  height: 210px;
+  background: #ffb0e4;
+  border-radius: 20px 20px 50px 50px;
+  position: relative;
+  box-shadow: 0 12px 0 #d46bb2;
+  margin-top: 140px;
+}
+
+/* ICING */
+.cake::before {
+  content: "";
+  position: absolute;
+  top: -45px;
+  left: 0;
+  width: 100%;
+  height: 70px;
+  background: #ff66c4;
+  border-radius: 45px 45px 20px 20px;
+}
+
+/* CANDLE */
+.candle {
+  width: 32px;
+  height: 130px;
+  background: repeating-linear-gradient(
+    135deg, white, white 10px, pink 10px, pink 20px
+  );
+  position: absolute;
+  top: -175px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 12px;
+}
+
+/* FLAME */
+#flame {
+  width: 40px;
+  height: 60px;
+  background: radial-gradient(ellipse at bottom, yellow, orange, transparent);
+  border-radius: 50% 50% 40% 40%;
+  position: absolute;
+  top: -70px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: flicker 0.2s infinite alternate;
+}
+
+@keyframes flicker {
+  from { transform: translateX(-50%) scale(1); }
+  to { transform: translateX(-50%) scale(1.2); }
+}
+
+/* HINT TEXT */
+#hint {
+  margin-top: 50px;
+  font-size: 22px;
+  color: white;
+  font-weight: bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>🎉 Happy Birthday Mithu 🎉</h1>
+
+<div class="cake">
+  <div class="candle">
+    <div id="flame"></div>
+  </div>
+</div>
+
+<div id="hint">Blow to put out the candle 🎂🎤</div>
+
+<script>
+/* -------- MICROPHONE DETECTION -------- */
+let audioContext, analyser, dataArray;
+let blown = false;
+let blowTimer = 0; // track continuous blowing
+
+async function startMic() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        audioContext = new AudioContext();
+        const mic = audioContext.createMediaStreamSource(stream);
+
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+
+        mic.connect(analyser);
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        detect();
+    } catch (e) {
+        document.getElementById("hint").innerText =
+            "Microphone blocked ❌ Please allow it!";
+    }
+}
+
+function detect() {
+    analyser.getByteFrequencyData(dataArray);
+
+    // average volume
+    let volume = dataArray.reduce((a, b) => a + b) / dataArray.length;
+
+    // 🔥 Higher threshold prevents false triggers
+    const threshold = 45; 
+
+    if (volume > threshold && !blown) {
+        blowTimer++;
+
+        // must blow continuously for ~400ms
+        if (blowTimer > 25) {
+            blown = true;
+            blowOut();
+        }
+    } else {
+        blowTimer = 0; // reset if blow stops
+    }
+
+    requestAnimationFrame(detect);
+}
+
+function blowOut() {
+    const flame = document.getElementById("flame");
+
+    flame.style.opacity = "0";
+    flame.style.transition = "0.5s ease";
+
+    document.getElementById("hint").innerText = "🎉 Candle blown! 🎉";
+
+    setTimeout(() => {
+        window.location.href = "page2.html";
+    }, 1500);
+}
+
+startMic();
+</script>
+
+</body>
+</html>
+
